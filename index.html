@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario de Fórmulas - Geometría 2º ESO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        .instructions {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .questions-container {
+            display: none;
+        }
+        .questions-container.active {
+            display: block;
+        }
+        .question {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .question-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        .figure-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .figure-wrapper {
+            position: relative;
+            display: inline-block;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .figure-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            min-height: 250px;
+            cursor: crosshair;
+        }
+        .figure-box svg {
+            max-width: 100%;
+            max-height: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        .drawing-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2;
+        }
+        .label-marker {
+            position: absolute;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 20;
+            transition: all 0.2s;
+        }
+        .label-marker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+        }
+        .point-indicator {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            z-index: 15;
+            border: 2px solid white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+        .instruction-text {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            color: #856404;
+            text-align: center;
+        }
+        .instruction-text.step1 {
+            background: #e3f2fd;
+            border-color: #667eea;
+            color: #0d47a1;
+        }
+        .instruction-text.step2 {
+            background: #f3e5f5;
+            border-color: #764ba2;
+            color: #4a148c;
+        }
+        .drawing-instructions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .draw-btn {
+            padding: 8px 14px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .draw-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .draw-btn:hover {
+            border-color: #667eea;
+        }
+        .answer-box {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .answer-section {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+        .section-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .labels-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 30px;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .label-tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .label-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .label-tag .remove:hover {
+            opacity: 1;
+        }
+        .formula-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .formula-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .formula-group input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+        .formula-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+        .formula-group input.correct {
+            border-color: #4caf50;
+            background-color: #f1f8f4;
+        }
+        .formula-group input.incorrect {
+            border-color: #f44336;
+            background-color: #fdf1f0;
+        }
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-submit {
+            background: #667eea;
+            color: white;
+            flex: 1;
+            max-width: 200px;
+        }
+        .btn-submit:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-reset {
+            background: #f5f5f5;
+            color: #333;
+            flex: 1;
+            max-width: 200px;
+            border: 1px solid #ddd;
+        }
+        .btn-reset:hover {
+            background: #efefef;
+        }
+        .input-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-modal.active {
+            display: flex;
+        }
+        .input-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 300px;
+        }
+        .input-modal-content h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .input-modal-content input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .input-modal-content input:focus {
+            outline: none;
+            border-color: #5568d3;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+        }
+        .modal-btn-ok {
+            background: #667eea;
+            color: white;
+        }
+        .modal-btn-ok:hover {
+            background: #5568d3;
+        }
+        .modal-btn-cancel {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .modal-btn-cancel:hover {
+            background: #efefef;
+        }
+        .results {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .results.active {
+            display: block;
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .score-number {
+            font-size: 48px;
+            font-weight: bold;
+        }
+        .score-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .results h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .summary {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #555;
+            line-height: 1.8;
+        }
+        .detail-answers {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .detail-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+        .detail-answer {
+            color: #666;
+            font-family: 'Courier New', monospace;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal h3 {
+            color: #f44336;
+            margin-bottom: 15px;
+        }
+        .modal p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .modal button {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+        }
+        @media (max-width: 768px) {
+            .question-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📐 Fórmulas de Geometría</h1>
+            <p class="subtitle">2º ESO - Dibuja, etiqueta y formula</p>
+        </header>
+
+        <div class="instructions">
+            <strong>Instrucciones:</strong> 
+            <br>1️⃣ Dibuja las líneas necesarias (altura, diagonales...) haciendo clic en dos puntos
+            <br>2️⃣ Etiqueta cada línea con una letra
+            <br>3️⃣ Escribe la fórmula usando las mismas letras
+        </div>
+
+        <div class="questions-container active" id="questionsContainer">
+            <!-- Las preguntas se generarán con JavaScript -->
+        </div>
+
+        <div class="buttons-container">
+            <button class="btn-submit" id="submitBtn" onclick="submitAnswers()">Enviar respuestas</button>
+            <button class="btn-reset" id="resetBtn" onclick="resetForm()">Limpiar</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="score-circle">
+                <div class="score-number" id="scoreNumber">0</div>
+                <div class="score-label">%</div>
+            </div>
+            <h2 id="resultMessage">¡Bien hecho!</h2>
+            <div class="summary" id="resultSummary"></div>
+            <div class="detail-answers" id="detailAnswers"></div>
+            <div class="buttons-container">
+                <button class="btn-submit" onclick="location.reload()">Intentar de nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-modal" id="inputModal">
+        <div class="input-modal-content">
+            <h3>Etiqueta esta línea:</h3>
+            <input type="text" id="labelInput" maxlength="2" placeholder="?" autofocus>
+            <div class="modal-buttons">
+                <button class="modal-btn-ok" onclick="confirmLabel()">Aceptar</button>
+                <button class="modal-btn-cancel" onclick="cancelLabel()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h3>⚠️ Incompleto</h3>
+            <p id="modalMessage">Debes completar todas las preguntas antes de enviar.</p>
+            <button onclick="closeModal()">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                title: "Rectángulo",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="40" y="30" width="170" height="90" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="50" cy="40" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 2,
+                hint: "Dibuja las líneas de la base y altura",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l));
+                }
+            },
+            {
+                id: 2,
+                title: "Cuadrado",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="70" y="20" width="110" height="110" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="80" cy="30" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 1,
+                hint: "Dibuja la línea de un lado",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 1 && formulaLetters.every(l => letterSet.has(l));
+                }
+            },
+            {
+                id: 3,
+                title: "Romboide",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="50,100 80,40 210,40 180,100" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="90" cy="50" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 2,
+                hint: "Dibuja la base y la altura (perpendicular)",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l));
+                }
+            },
+            {
+                id: 4,
+                title: "Rombo",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="125,20 200,75 125,130 50,75" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="125" cy="40" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 2,
+                hint: "Dibuja las dos diagonales",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l)) && /\/\s*2/i.test(formula);
+                }
+            },
+            {
+                id: 5,
+                title: "Triángulo",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="50,120 150,30 250,120" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="160" cy="40" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 2,
+                hint: "Dibuja la base y la altura",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l)) && /\/\s*2/i.test(formula);
+                }
+            },
+            {
+                id: 6,
+                title: "Trapecio",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="40,100 60,40 190,40 210,100" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="70" cy="50" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 3,
+                hint: "Dibuja las dos bases y la altura",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 3 && formulaLetters.every(l => letterSet.has(l)) && /\/\s*2/i.test(formula);
+                }
+            },
+            {
+                id: 7,
+                title: "Polígono regular",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="125,15 165,50 150,105 100,105 85,50" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="140" cy="60" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 2,
+                hint: "Marca el perímetro y la apotema",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l)) && /\/\s*2/i.test(formula);
+                }
+            },
+            {
+                id: 8,
+                title: "Círculo",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="125" cy="75" r="60" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="125" cy="75" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 1,
+                hint: "Dibuja el radio",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 1 && formulaLetters.every(l => letterSet.has(l)) && /π/i.test(formula);
+                }
+            },
+            {
+                id: 9,
+                title: "Sector circular",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="125" cy="75" r="60" fill="none" stroke="#ccc" stroke-width="1"/>
+                    <path d="M 125 75 L 185 75 A 60 60 0 0 0 155 25 Z" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <circle cx="170" cy="50" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 2,
+                hint: "Dibuja el radio y marca el ángulo",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l)) && /π/i.test(formula) && /360/i.test(formula);
+                }
+            },
+            {
+                id: 10,
+                title: "Longitud de la circunferencia",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="125" cy="75" r="60" fill="none" stroke="#333" stroke-width="2"/>
+                    <circle cx="125" cy="75" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 1,
+                hint: "Dibuja el radio o el diámetro",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 1 && formulaLetters.every(l => letterSet.has(l)) && /π/i.test(formula);
+                }
+            },
+            {
+                id: 11,
+                title: "Longitud del arco",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="125" cy="75" r="60" fill="none" stroke="#ccc" stroke-width="1"/>
+                    <line x1="125" y1="75" x2="185" y2="75" stroke="#333" stroke-width="2"/>
+                    <path d="M 185 75 A 60 60 0 0 0 155 25" fill="none" stroke="#333" stroke-width="2.5"/>
+                    <line x1="125" y1="75" x2="155" y2="25" stroke="#333" stroke-width="2"/>
+                    <circle cx="170" cy="50" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 2,
+                hint: "Dibuja el radio y marca el ángulo",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l)) && /π/i.test(formula) && /180/i.test(formula);
+                }
+            },
+            {
+                id: 12,
+                title: "Teorema de Pitágoras",
+                svg: `<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="50,120 50,60 90,120" fill="#667eea" fill-opacity="0.15" stroke="#333" stroke-width="2"/>
+                    <rect x="50" y="106" width="14" height="14" fill="none" stroke="#666" stroke-width="1"/>
+                    <circle cx="70" cy="90" r="2" fill="#667eea"/>
+                    </svg>`,
+                expectedLabels: 3,
+                hint: "Dibuja los tres lados del triángulo rectángulo",
+                validateFormula: (formula, labels) => {
+                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
+                    const formulaLetters = extractLetters(formula);
+                    return letterSet.size >= 3 && formulaLetters.every(l => letterSet.has(l)) && /\^2|²/.test(formula);
+                }
+            }
+        ];
+
+        let currentModal = null;
+        let currentQuestion = null;
+        let drawingMode = false;
+        let firstPoint = null;
+
+        function extractLetters(text) {
+            const matches = text.match(/[a-z]/gi);
+            return matches ? [...new Set(matches.map(m => m.toLowerCase()))] : [];
+        }
+
+        function generateQuestions() {
+            const container = document.getElementById('questionsContainer');
+            let html = '';
+            questions.forEach((q, idx) => {
+                html += `
+                    <div class="question" data-question-id="${q.id}">
+                        <div class="question-number">Pregunta ${idx + 1} de ${questions.length}: ${q.title}</div>
+                        <div class="question-content">
+                            <div class="figure-section">
+                                <div class="drawing-instructions">
+                                    <button class="draw-btn" id="draw-btn-${q.id}" onclick="toggleDrawing(${q.id})">
+                                        ✏️ Dibujar líneas
+                                    </button>
+                                    <button class="draw-btn" id="label-btn-${q.id}" onclick="toggleLabeling(${q.id})">
+                                        🏷️ Etiquetar
+                                    </button>
+                                </div>
+                                <div class="figure-wrapper">
+                                    <div class="figure-box" id="figure-${q.id}" onclick="handleFigureClick(event, ${q.id})">
+                                        ${q.svg}
+                                        <svg class="drawing-layer" id="drawing-${q.id}" style="position: absolute; top: 20px; left: 20px; width: 100%; height: 100%; pointer-events: none;"></svg>
+                                    </div>
+                                </div>
+                                <div class="instruction-text step1" id="instruction-${q.id}">
+                                    👆 Haz clic en dos puntos para dibujar una línea discontinua
+                                </div>
+                            </div>
+                            <div class="answer-box">
+                                <div class="answer-section">
+                                    <div class="section-title">Etiquetas colocadas:</div>
+                                    <div class="labels-list" id="labels-summary-${q.id}"></div>
+                                </div>
+                                <div class="answer-section">
+                                    <div class="formula-group">
+                                        <label for="formula-${q.id}">Escribe la fórmula:</label>
+                                        <input type="text" id="formula-${q.id}" class="formula-input" 
+                                               placeholder="" data-question="${q.id}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            
+            // Inicializar labels para cada pregunta
+            questions.forEach(q => {
+                q.labels = [];
+                q.lines = [];
+            });
+        }
+
+        function toggleDrawing(questionId) {
+            const btn = document.getElementById(`draw-btn-${questionId}`);
+            const labelBtn = document.getElementById(`label-btn-${questionId}`);
+            const instruction = document.getElementById(`instruction-${questionId}`);
+            
+            drawingMode = !drawingMode;
+            firstPoint = null;
+            
+            if (drawingMode) {
+                btn.classList.add('active');
+                labelBtn.classList.remove('active');
+                instruction.textContent = '👆 Haz clic en dos puntos para dibujar una línea discontinua';
+                instruction.className = 'instruction-text step1';
+            } else {
+                btn.classList.remove('active');
+                instruction.textContent = '✏️ Dibuja completo o haz clic en "Etiquetar"';
+                instruction.className = 'instruction-text';
+                firstPoint = null;
+            }
+        }
+
+        function toggleLabeling(questionId) {
+            const btn = document.getElementById(`label-btn-${questionId}`);
+            const drawBtn = document.getElementById(`draw-btn-${questionId}`);
+            const instruction = document.getElementById(`instruction-${questionId}`);
+            
+            drawingMode = false;
+            firstPoint = null;
+            drawBtn.classList.remove('active');
+            
+            if (!btn.classList.contains('active')) {
+                btn.classList.add('active');
+                instruction.textContent = '🏷️ Haz clic en una línea para etiquetarla';
+                instruction.className = 'instruction-text step2';
+            } else {
+                btn.classList.remove('active');
+                instruction.textContent = '✏️ Continúa dibujando o etiquetando';
+                instruction.className = 'instruction-text';
+            }
+        }
+
+        function handleFigureClick(event, questionId) {
+            const figure = document.getElementById(`figure-${questionId}`);
+            const rect = figure.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const drawBtn = document.getElementById(`draw-btn-${questionId}`);
+            const labelBtn = document.getElementById(`label-btn-${questionId}`);
+
+            // Modo dibujo
+            if (drawBtn.classList.contains('active')) {
+                if (!firstPoint) {
+                    firstPoint = { x, y, questionId };
+                    // Mostrar indicador del primer punto
+                    const indicator = document.createElement('div');
+                    indicator.className = 'point-indicator';
+                    indicator.style.left = (x - 4) + 'px';
+                    indicator.style.top = (y - 4) + 'px';
+                    indicator.id = `point-${questionId}`;
+                    figure.appendChild(indicator);
+                } else {
+                    // Dibujar línea
+                    drawLine(questionId, firstPoint.x, firstPoint.y, x, y);
+                    
+                    // Limpiar indicador
+                    const indicator = document.getElementById(`point-${questionId}`);
+                    if (indicator) indicator.remove();
+                    firstPoint = null;
+                }
+            }
+            // Modo etiqueta
+            else if (labelBtn.classList.contains('active')) {
+                currentModal = { questionId, x, y };
+                document.getElementById('labelInput').value = '';
+                document.getElementById('inputModal').classList.add('active');
+                document.getElementById('labelInput').focus();
+            }
+        }
+
+        function drawLine(questionId, x1, y1, x2, y2) {
+            const question = questions.find(q => q.id === questionId);
+            const svg = document.getElementById(`drawing-${questionId}`);
+            
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('stroke', '#667eea');
+            line.setAttribute('stroke-width', '2');
+            line.setAttribute('stroke-dasharray', '4,4');
+            line.setAttribute('opacity', '0.7');
+            line.style.cursor = 'pointer';
+            
+            const lineId = `line-${questionId}-${question.lines.length}`;
+            line.id = lineId;
+            
+            line.onclick = (e) => {
+                e.stopPropagation();
+                if (document.getElementById(`label-btn-${questionId}`).classList.contains('active')) {
+                    currentModal = { questionId, lineId, x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+                    document.getElementById('labelInput').value = '';
+                    document.getElementById('inputModal').classList.add('active');
+                    document.getElementById('labelInput').focus();
+                }
+            };
+            
+            svg.appendChild(line);
+            question.lines.push({ id: lineId, x1, y1, x2, y2, letter: null });
+        }
+
+        function confirmLabel() {
+            const input = document.getElementById('labelInput');
+            const letter = input.value.trim().toUpperCase();
+
+            if (!letter) {
+                alert('Escribe una letra');
+                return;
+            }
+
+            if (letter.length > 2) {
+                alert('Máximo 2 caracteres');
+                return;
+            }
+
+            const question = questions.find(q => q.id === currentModal.questionId);
+            const figure = document.getElementById(`figure-${currentModal.questionId}`);
+            
+            // Si es etiqueta de línea
+            if (currentModal.lineId) {
+                const lineData = question.lines.find(l => l.id === currentModal.lineId);
+                if (lineData) {
+                    lineData.letter = letter;
+                    question.labels.push({ letter, lineId: currentModal.lineId });
+                }
+            }
+
+            const marker = document.createElement('div');
+            marker.className = 'label-marker';
+            marker.textContent = letter;
+            marker.style.left = (currentModal.x - 16) + 'px';
+            marker.style.top = (currentModal.y - 16) + 'px';
+            marker.onclick = (e) => {
+                e.stopPropagation();
+                question.labels = question.labels.filter(l => l.letter !== letter || l.lineId !== currentModal.lineId);
+                marker.remove();
+                if (currentModal.lineId) {
+                    const lineData = question.lines.find(l => l.id === currentModal.lineId);
+                    if (lineData) lineData.letter = null;
+                }
+                updateLabelsList(currentModal.questionId);
+            };
+            figure.appendChild(marker);
+
+            updateLabelsList(currentModal.questionId);
+            cancelLabel();
+        }
+
+        function cancelLabel() {
+            document.getElementById('inputModal').classList.remove('active');
+            currentModal = null;
+        }
+
+        function updateLabelsList(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            const listContainer = document.getElementById(`labels-summary-${questionId}`);
+            
+            let html = '';
+            const uniqueLetters = new Set(question.labels.map(l => l.letter));
+            uniqueLetters.forEach(letter => {
+                html += `<div class="label-tag">${letter}</div>`;
+            });
+            
+            listContainer.innerHTML = html || '<span style="color: #999; font-size: 12px;">Sin etiquetas</span>';
+        }
+
+        function submitAnswers() {
+            let allCompleted = true;
+            const results = [];
+            let correctCount = 0;
+
+            questions.forEach((q) => {
+                const formulaInput = document.getElementById(`formula-${q.id}`);
+                const formula = formulaInput.value.trim();
+
+                if (!formula || q.labels.length === 0) {
+                    allCompleted = false;
+                    return;
+                }
+
+                const isCoherent = q.validateFormula(formula, q.labels);
+                
+                if (isCoherent) {
+                    correctCount++;
+                    formulaInput.classList.add('correct');
+                    formulaInput.classList.remove('incorrect');
+                } else {
+                    formulaInput.classList.add('incorrect');
+                    formulaInput.classList.remove('correct');
+                }
+
+                results.push({
+                    title: q.title,
+                    labels: [...new Set(q.labels.map(l => l.letter))].join(', '),
+                    formula: formula,
+                    isCorrect: isCoherent
+                });
+            });
+
+            if (!allCompleted) {
+                document.getElementById('modalMessage').textContent = 'Debes dibujar líneas, etiquetarlas y escribir la fórmula en todas las preguntas.';
+                showModal();
+                return;
+            }
+
+            showResults(correctCount, results);
+        }
+
+        function showResults(correctCount, results) {
+            const total = questions.length;
+            const percentage = Math.round((correctCount / total) * 100);
+
+            document.getElementById('questionsContainer').classList.remove('active');
+            document.getElementById('results').classList.add('active');
+            document.getElementById('scoreNumber').textContent = percentage;
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+
+            let message = '';
+            if (percentage === 100) {
+                message = '¡Perfecto! 🌟 Has acertado todas.';
+            } else if (percentage >= 80) {
+                message = '¡Muy bien! 👏 Excelente desempeño.';
+            } else if (percentage >= 60) {
+                message = '¡Buen trabajo! 📚 Revisa los que fallaste.';
+            } else if (percentage >= 40) {
+                message = 'Sigue estudiando 💪 Practica más.';
+            } else {
+                message = 'Necesitas practicar más 📖';
+            }
+            document.getElementById('resultMessage').textContent = message;
+
+            let summary = `<strong>Resultado: ${correctCount} de ${total} correctas</strong><br>`;
+            summary += `Porcentaje: ${percentage}%`;
+            document.getElementById('resultSummary').innerHTML = summary;
+
+            let detailHtml = '';
+            results.forEach((r, idx) => {
+                detailHtml += `
+                    <div class="detail-item">
+                        <div class="detail-label">${idx + 1}. ${r.title}</div>
+                        <div style="margin: 8px 0;">
+                            <strong style="font-size: 11px; color: #555;">Etiquetas:</strong>
+                            <div class="detail-answer">${r.labels}</div>
+                        </div>
+                        <div>
+                            <strong style="font-size: 11px; color: #555;">Fórmula:</strong>
+                            <div class="detail-answer">${r.formula} ${r.isCorrect ? '✓' : '✗'}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('detailAnswers').innerHTML = detailHtml;
+        }
+
+        function resetForm() {
+            location.reload();
+        }
+
+        function showModal() {
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Enter para confirmar en modal de input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.getElementById('inputModal').classList.contains('active')) {
+                confirmLabel();
+            }
+        });
+
+        generateQuestions();
+    </script>
+</body>
+</html>
