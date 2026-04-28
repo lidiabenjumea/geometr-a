@@ -570,7 +570,7 @@
                 validateFormula: (formula, labels) => {
                     const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
                     const formulaLetters = extractLetters(formula);
-                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l));
+                    return letterSet.size >= 1 && formulaLetters.length > 0;
                 }
             },
             {
@@ -598,9 +598,7 @@
                 expectedLabels: 2,
                 hint: "Dibuja la base y la altura (perpendicular)",
                 validateFormula: (formula, labels) => {
-                    const letterSet = new Set(labels.map(l => l.letter.toLowerCase()));
-                    const formulaLetters = extractLetters(formula);
-                    return letterSet.size >= 2 && formulaLetters.every(l => letterSet.has(l));
+                    return labels.length >= 1 && formula.trim().length > 0;
                 }
             },
             {
