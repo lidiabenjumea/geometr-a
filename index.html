@@ -104,6 +104,7 @@
             top: 20px;
             left: 20px;
             z-index: 2;
+            pointer-events: auto;
         }
         .label-marker {
             position: absolute;
@@ -216,6 +217,19 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .label-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            margin-left: 4px;
+        }
+
+        .label-tag .remove:hover {
+            opacity: 1;
         }
         .label-tag .remove {
             cursor: pointer;
@@ -496,6 +510,8 @@
             <br>1️⃣ Dibuja las líneas necesarias (altura, diagonales...) haciendo clic en dos puntos
             <br>2️⃣ Etiqueta cada línea con una letra
             <br>3️⃣ Escribe la fórmula usando las mismas letras
+            <br><strong>💡 Para borrar una línea:</strong> En modo "Dibujar líneas", haz clic en la línea que quieres borrar
+            <br><strong>💡 Para borrar una etiqueta:</strong> Haz clic en el círculo con la letra
         </div>
 
         <div class="questions-container active" id="questionsContainer">
@@ -755,6 +771,9 @@
                                     <button class="draw-btn" id="label-btn-${q.id}" onclick="toggleLabeling(${q.id})">
                                         🏷️ Etiquetar
                                     </button>
+                                    <button class="draw-btn" id="clean-btn-${q.id}" onclick="cleanQuestion(${q.id})" style="background: #ff9800; color: white;">
+                                        🗑️ Limpiar esta pregunta
+                                    </button>
                                 </div>
                                 <div class="figure-wrapper">
                                     <div class="figure-box" id="figure-${q.id}" onclick="handleFigureClick(event, ${q.id})">
@@ -816,6 +835,7 @@
         function toggleLabeling(questionId) {
             const btn = document.getElementById(`label-btn-${questionId}`);
             const drawBtn = document.getElementById(`draw-btn-${questionId}`);
+            const cleanBtn = document.getElementById(`clean-btn-${questionId}`);
             const instruction = document.getElementById(`instruction-${questionId}`);
             
             drawingMode = false;
@@ -833,11 +853,77 @@
             }
         }
 
-        function handleFigureClick(event, questionId) {
+        function toggleDelete(questionId) {
+            const btn = document.getElementById(`delete-btn-${questionId}`);
+            const drawBtn = document.getElementById(`draw-btn-${questionId}`);
+            const labelBtn = document.getElementById(`label-btn-${questionId}`);
+            const instruction = document.getElementById(`instruction-${questionId}`);
+            
+            drawingMode = false;
+            firstPoint = null;
+            drawBtn.classList.remove('active');
+            labelBtn.classList.remove('active');
+            
+            if (!btn.classList.contains('active')) {
+                btn.classList.add('active');
+                instruction.textContent = '🗑️ Haz clic en una línea para borrarla';
+                instruction.className = 'instruction-text';
+                instruction.style.background = '#ffebee';
+                instruction.style.borderColor = '#f44336';
+                instruction.style.color = '#c62828';
+            } else {
+                btn.classList.remove('active');
+                instruction.textContent = '✏️ Continúa dibujando';
+                instruction.className = 'instruction-text';
+                instruction.style.background = '';
+                instruction.style.borderColor = '';
+                instruction.style.color = '';
+            }
+        }
+
+        function cleanQuestion(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            
+            // Limpiar líneas del SVG
+            const svg = document.getElementById(`drawing-${questionId}`);
+            svg.innerHTML = '';
+            
+            // Limpiar líneas de la lista
+            question.lines = [];
+            question.labels = [];
+            
+            // Limpiar etiquetas visuales
             const figure = document.getElementById(`figure-${questionId}`);
-            const rect = figure.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            const markers = figure.querySelectorAll('.label-marker');
+            markers.forEach(m => m.remove());
+            
+            // Limpiar puntos indicadores
+            const points = figure.querySelectorAll('.point-indicator');
+            points.forEach(p => p.remove());
+            
+            // Limpiar fórmula
+            document.getElementById(`formula-${questionId}`).value = '';
+            
+            // Resetear firstPoint si es de esta pregunta
+            if (firstPoint && firstPoint.questionId === questionId) {
+                firstPoint = null;
+            }
+            
+            // Actualizar lista de etiquetas
+            updateLabelsList(questionId);
+        }
+
+        function handleFigureClick(event, questionId) {
+            const figureBox = document.getElementById(`figure-${questionId}`);
+            const svg = document.getElementById(`drawing-${questionId}`);
+            
+            // Obtener la posición exacta dentro del SVG
+            const boxRect = figureBox.getBoundingClientRect();
+            const svgRect = svg.getBoundingClientRect();
+            
+            // Calcular relativo al SVG directamente
+            const x = event.clientX - svgRect.left;
+            const y = event.clientY - svgRect.top;
 
             const drawBtn = document.getElementById(`draw-btn-${questionId}`);
             const labelBtn = document.getElementById(`label-btn-${questionId}`);
@@ -849,10 +935,11 @@
                     // Mostrar indicador del primer punto
                     const indicator = document.createElement('div');
                     indicator.className = 'point-indicator';
-                    indicator.style.left = (x - 4) + 'px';
-                    indicator.style.top = (y - 4) + 'px';
+                    indicator.style.position = 'absolute';
+                    indicator.style.left = (x + svgRect.left - boxRect.left - 4) + 'px';
+                    indicator.style.top = (y + svgRect.top - boxRect.top - 4) + 'px';
                     indicator.id = `point-${questionId}`;
-                    figure.appendChild(indicator);
+                    figureBox.appendChild(indicator);
                 } else {
                     // Dibujar línea
                     drawLine(questionId, firstPoint.x, firstPoint.y, x, y);
@@ -892,21 +979,74 @@
             
             line.onclick = (e) => {
                 e.stopPropagation();
-                if (document.getElementById(`label-btn-${questionId}`).classList.contains('active')) {
+                const drawBtn = document.getElementById(`draw-btn-${questionId}`);
+                const labelBtn = document.getElementById(`label-btn-${questionId}`);
+                const deleteBtn = document.getElementById(`delete-btn-${questionId}`);
+                
+                // Si está en modo etiqueta, etiquetar
+                if (labelBtn && labelBtn.classList.contains('active')) {
                     currentModal = { questionId, lineId, x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
                     document.getElementById('labelInput').value = '';
                     document.getElementById('inputModal').classList.add('active');
                     document.getElementById('labelInput').focus();
                 }
+                // Si está en modo borrado, borrar la línea
+                else if (deleteBtn && deleteBtn.classList.contains('active')) {
+                    console.log('Borrando línea:', lineId);
+                    deleteLine(questionId, lineId);
+                }
             };
             
             svg.appendChild(line);
-            question.lines.push({ id: lineId, x1, y1, x2, y2, letter: null });
+            question.lines.push({ id: lineId, x1, y1, x2, y2, letter: null, element: line });
+        }
+
+        function deleteLine(questionId, lineId) {
+            const question = questions.find(q => q.id === questionId);
+            
+            // Borrar el elemento SVG
+            const lineElement = document.getElementById(lineId);
+            if (lineElement) {
+                lineElement.remove();
+            }
+            
+            // Borrar todas las etiquetas de esta línea
+            question.labels = question.labels.filter(l => l.lineId !== lineId);
+            
+            // Borrar marcadores visuales
+            const figure = document.getElementById(`figure-${questionId}`);
+            const markers = figure.querySelectorAll('.label-marker');
+            markers.forEach(m => {
+                m.remove();
+            });
+            
+            // Volver a dibujar los marcadores (excepto el de la línea borrada)
+            question.labels.forEach(label => {
+                const lineData = question.lines.find(l => l.id === label.lineId);
+                if (lineData) {
+                    const marker = document.createElement('div');
+                    marker.className = 'label-marker';
+                    marker.textContent = label.letter;
+                    marker.style.left = ((lineData.x1 + lineData.x2) / 2 - 16) + 'px';
+                    marker.style.top = ((lineData.y1 + lineData.y2) / 2 - 16) + 'px';
+                    marker.style.position = 'absolute';
+                    marker.title = 'Haz clic para borrar';
+                    marker.onclick = (e) => {
+                        e.stopPropagation();
+                        deleteLine(questionId, label.lineId);
+                    };
+                    figure.appendChild(marker);
+                }
+            });
+            
+            // Borrar la línea de la lista
+            question.lines = question.lines.filter(l => l.id !== lineId);
+            updateLabelsList(questionId);
         }
 
         function confirmLabel() {
             const input = document.getElementById('labelInput');
-            const letter = input.value.trim().toUpperCase();
+            const letter = input.value.trim();
 
             if (!letter) {
                 alert('Escribe una letra');
@@ -935,15 +1075,15 @@
             marker.textContent = letter;
             marker.style.left = (currentModal.x - 16) + 'px';
             marker.style.top = (currentModal.y - 16) + 'px';
+            marker.style.position = 'absolute';
+            marker.title = 'Haz clic para borrar la línea y la etiqueta';
             marker.onclick = (e) => {
                 e.stopPropagation();
-                question.labels = question.labels.filter(l => l.letter !== letter || l.lineId !== currentModal.lineId);
-                marker.remove();
+                // Borrar la línea completa
                 if (currentModal.lineId) {
-                    const lineData = question.lines.find(l => l.id === currentModal.lineId);
-                    if (lineData) lineData.letter = null;
+                    deleteLine(currentModal.questionId, currentModal.lineId);
+                    marker.remove();
                 }
-                updateLabelsList(currentModal.questionId);
             };
             figure.appendChild(marker);
 
@@ -967,6 +1107,19 @@
             });
             
             listContainer.innerHTML = html || '<span style="color: #999; font-size: 12px;">Sin etiquetas</span>';
+        }
+
+        function removeLabelTag(questionId, letter) {
+            const question = questions.find(q => q.id === questionId);
+            
+            // Encontrar la línea asociada
+            const labelIndex = question.labels.findIndex(l => l.letter === letter);
+            if (labelIndex === -1) return;
+            
+            const lineId = question.labels[labelIndex].lineId;
+            
+            // Borrar la línea y su etiqueta
+            deleteLine(questionId, lineId);
         }
 
         function submitAnswers() {
